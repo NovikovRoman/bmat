@@ -29,11 +29,10 @@ func FromImage(im image.Image, backColor color.Color) (m *Mat) {
 			}
 		}
 
-		if im.Bounds().Dx()&7 != 0 {
+		if w&7 != 0 {
 			m.data[y*m.widthBytes+w/8] = b << (m.widthBytes*8 - w)
 		}
 	}
-
 	return
 }
 
