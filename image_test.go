@@ -1,6 +1,9 @@
 package bmat
 
 import (
+	"bytes"
+	"crypto/sha1"
+	"fmt"
 	"image"
 	"image/color"
 	"image/png"
@@ -83,4 +86,22 @@ func getImageFromFilePath(filePath string) (image.Image, error) {
 	defer f.Close()
 	image, err := png.Decode(f)
 	return image, err
+}
+
+func TestToImage(t *testing.T) {
+	im, err := getImageFromFilePath("testdata/10x2.png")
+	require.Nil(t, err)
+
+	m := FromImage(im, color.RGBA{A: 255})
+	buf := new(bytes.Buffer)
+
+	err = png.Encode(buf, m.ToImage())
+	require.Nil(t, err)
+
+	h := sha1.New()
+	var n int
+	n, err = h.Write(buf.Bytes())
+	require.Nil(t, err)
+	require.Equal(t, n, 74)
+	require.Equal(t, fmt.Sprintf("%x", h.Sum(nil)), "28c4f997569697e3af47af2c3dc6c27d6d9bd76c")
 }

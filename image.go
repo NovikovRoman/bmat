@@ -34,18 +34,24 @@ func FromImage(im image.Image, backColor color.Color) (m *Mat) {
 }
 
 func (m *Mat) ToImage() (im *image.Gray) {
-	backColor := color.Gray{Y: 0}
 	penColor := color.Gray{Y: 255}
 	im = image.NewGray(image.Rect(0, 0, m.width, m.height))
+
 	for row := 0; row < m.height; row++ {
 		for col := 0; col < m.widthBytes; col++ {
 			b := m.GetByte(col, row)
-			for x := 0; x < 8; x++ {
+
+			for dx := 0; dx < 8; dx++ {
+				x := col*8 + dx
+
+				if x >= m.width {
+					break
+				}
+
 				if b&128 > 0 {
 					im.SetGray(x, row, penColor)
-				} else {
-					im.SetGray(x, row, backColor)
 				}
+				b = b << 1
 			}
 
 		}
