@@ -6,20 +6,19 @@ import (
 )
 
 func FromImage(im image.Image, backColor color.Color) (m *Mat) {
-	p0 := im.Bounds().Min
-	p1 := im.Bounds().Max
-
-	w := p1.X - p0.X
-	h := p1.Y - p0.Y
+	offset := im.Bounds().Min
+	w := im.Bounds().Dx()
+	h := im.Bounds().Dy()
 	m = New(w, h)
 
+	var b uint8
 	for y := 0; y < h; y++ {
-		b := uint8(0)
+		b = 0
 
 		for x := 0; x < w; x++ {
 			b = b << 1
 
-			if im.At(x+p0.X, y+p0.Y) != backColor {
+			if im.At(x+offset.X, y+offset.Y) != backColor {
 				b += 1
 			}
 
