@@ -30,12 +30,11 @@ func (m *Mat) GetByte(col, row int) uint8 {
 }
 
 func (m *Mat) SetByte(col, row int, b uint8) bool {
-	offset := row*m.widthBytes + col
-	if offset < len(m.data) {
-		m.data[offset] = b
-		return true
+	if m.widthBytes <= col || m.height <= row {
+		return false
 	}
-	return false
+	m.data[row*m.widthBytes+col] = b
+	return true
 }
 
 func New(width, height int) (m *Mat) {
