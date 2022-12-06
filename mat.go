@@ -22,14 +22,14 @@ func (m *Mat) Height() int {
 	return m.height
 }
 
-func (m *Mat) GetByte(col, row int) uint8 {
+func (m *Mat) GetByte(row, col int) uint8 {
 	if m.widthBytes <= col || m.height <= row {
 		return 0
 	}
 	return m.data[row*m.widthBytes+col]
 }
 
-func (m *Mat) SetByte(col, row int, b uint8) bool {
+func (m *Mat) SetByte(row, col int, b uint8) bool {
 	if m.widthBytes <= col || m.height <= row {
 		return false
 	}
@@ -90,25 +90,25 @@ func (m *Mat) Area(x, y, width, height int) (mRes *Mat) {
 
 			var b uint8
 			if x >= 0 {
-				b = m.GetByte(col, row)
+				b = m.GetByte(row, col)
 				mRes.data[num] = b << offset
 				if offset > 0 && col+1 < m.widthBytes {
-					mRes.data[num] |= m.GetByte(col+1, row) >> (8 - offset)
+					mRes.data[num] |= m.GetByte(row, col+1) >> (8 - offset)
 				}
 				num++
 				continue
 			}
 
 			if col == 0 {
-				b = m.GetByte(col, row)
+				b = m.GetByte(row, col)
 				mRes.data[num] = b >> offset
 
 			} else {
-				b = m.GetByte(col-1, row)
+				b = m.GetByte(row, col-1)
 				mRes.data[num] = b << (8 - offset)
 
 				if offset > 0 {
-					mRes.data[num] |= m.GetByte(col, row) >> offset
+					mRes.data[num] |= m.GetByte(row, col) >> offset
 				}
 			}
 

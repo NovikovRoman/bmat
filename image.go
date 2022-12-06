@@ -41,7 +41,7 @@ func (m *Mat) ToImage() (im *image.Gray) {
 
 	for row := 0; row < m.height; row++ {
 		for col := 0; col < m.widthBytes; col++ {
-			b := m.GetByte(col, row)
+			b := m.GetByte(row, col)
 
 			for dx := 0; dx < 8; dx++ {
 				x := col*8 + dx

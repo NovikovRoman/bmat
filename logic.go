@@ -2,9 +2,9 @@ package bmat
 
 func (m *Mat) Not() (mRes *Mat) {
 	mRes = New(m.width, m.height)
-	for y := 0; y < m.height; y++ {
-		for x := 0; x < m.widthBytes; x++ {
-			mRes.SetByte(x, y, ^m.GetByte(x, y))
+	for row := 0; row < m.height; row++ {
+		for col := 0; col < m.widthBytes; col++ {
+			mRes.SetByte(row, col, ^m.GetByte(row, col))
 		}
 	}
 	return
@@ -43,9 +43,9 @@ func (m *Mat) eachByte(m2 *Mat, fn func(b1, b2 uint8) uint8) (mRes *Mat) {
 
 	mRes = New(width, height)
 	num := 0
-	for y := 0; y < height; y++ {
-		for x := 0; x < widthBytes; x++ {
-			mRes.data[num] = fn(m.GetByte(x, y), m2.GetByte(x, y))
+	for row := 0; row < height; row++ {
+		for col := 0; col < widthBytes; col++ {
+			mRes.data[num] = fn(m.GetByte(row, col), m2.GetByte(row, col))
 			num++
 		}
 	}
