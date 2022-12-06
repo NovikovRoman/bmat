@@ -215,3 +215,162 @@ func TestMat_Area(t *testing.T) {
 		})
 	}
 }
+
+var (
+	testMarginMat = &Mat{
+		width:      22,
+		height:     8,
+		widthBytes: 3,
+		data: []uint8{
+			0, 0, 0,
+			0, 0, 0,
+			// Последние два бита в каждой строке не учитываются, тк длина 22.
+			0b00000000, 0b00001110, 0b00000000,
+			0b00000000, 0b00101010, 0b11000000,
+			0b00000000, 0b00001110, 0b10010000,
+			0b00000000, 0b00001110, 0b00000000,
+			0, 0, 0,
+			0, 0, 0,
+		},
+	}
+	testEmptyMat = &Mat{
+		width:      22,
+		height:     5,
+		widthBytes: 3,
+		data: []uint8{
+			0, 0, 0,
+			0, 0, 0,
+			0, 0, 0,
+			0, 0, 0,
+			0, 0, 0,
+		},
+	}
+)
+
+func TestMat_TopMargin(t *testing.T) {
+	tests := []struct {
+		name       string
+		mat        *Mat
+		wantMargin int
+	}{
+		{
+			name:       "top 2",
+			mat:        testMarginMat,
+			wantMargin: 2,
+		},
+		{
+			name:       "top 4 empty mat",
+			mat:        testEmptyMat,
+			wantMargin: 4,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if gotMargin := tt.mat.TopMargin(); gotMargin != tt.wantMargin {
+				t.Errorf("Mat.TopMargin() = %v, want %v", gotMargin, tt.wantMargin)
+			}
+		})
+	}
+}
+
+func TestMat_BottomMargin(t *testing.T) {
+	tests := []struct {
+		name       string
+		mat        *Mat
+		wantMargin int
+	}{
+		{
+			name:       "bottom 5",
+			mat:        testMarginMat,
+			wantMargin: 5,
+		},
+		{
+			name:       "bottom 0 empty mat",
+			mat:        testEmptyMat,
+			wantMargin: 0,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if gotMargin := tt.mat.BottomMargin(); gotMargin != tt.wantMargin {
+				t.Errorf("Mat.BottomMargin() = %v, want %v", gotMargin, tt.wantMargin)
+			}
+		})
+	}
+}
+
+func TestMat_LeftMargin(t *testing.T) {
+	tests := []struct {
+		name       string
+		mat        *Mat
+		wantMargin int
+	}{
+		{
+			name:       "left 10",
+			mat:        testMarginMat,
+			wantMargin: 10,
+		},
+		{
+			name:       "left 21 empty mat",
+			mat:        testEmptyMat,
+			wantMargin: 21,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if gotMargin := tt.mat.LeftMargin(); gotMargin != tt.wantMargin {
+				t.Errorf("Mat.LeftMargin() = %v, want %v", gotMargin, tt.wantMargin)
+			}
+		})
+	}
+}
+
+func TestMat_RightMargin(t *testing.T) {
+	tests := []struct {
+		name       string
+		mat        *Mat
+		wantMargin int
+	}{
+		{
+			name:       "right 19",
+			mat:        testMarginMat,
+			wantMargin: 19,
+		},
+		{
+			name: "right 12",
+			mat: &Mat{
+				width:      22,
+				height:     8,
+				widthBytes: 3,
+				data: []uint8{
+					0, 0, 0,
+					0, 0, 0,
+					// Последние два бита в каждой строке не учитываются, тк длина 22.
+					0b00000000, 0b00001000, 0b00000000,
+					0b00000000, 0b01100000, 0b00000000,
+					0b00000000, 0b01001000, 0b00000000,
+					0b00000000, 0b00100000, 0b00000000,
+					0, 0, 0,
+					0, 0, 0,
+				},
+			},
+			wantMargin: 12,
+		},
+		{
+			name:       "right 0 empty mat",
+			mat:        testEmptyMat,
+			wantMargin: 0,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if gotMargin := tt.mat.RightMargin(); gotMargin != tt.wantMargin {
+				t.Errorf("Mat.RightMargin() = %v, want %v", gotMargin, tt.wantMargin)
+			}
+		})
+	}
+}

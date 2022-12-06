@@ -118,6 +118,97 @@ func (m *Mat) Area(x, y, width, height int) (mRes *Mat) {
 	return
 }
 
+func (m *Mat) TopMargin() (margin int) {
+	return m.horizontalMargin(false)
+}
+
+func (m *Mat) BottomMargin() (margin int) {
+	return m.horizontalMargin(true)
+}
+
+func (m *Mat) horizontalMargin(bottom bool) (margin int) {
+	if m.CountBits() == 0 { // пустая матрица
+		if bottom {
+			return 0
+		}
+		return m.height - 1
+	}
+
+	for row := 0; row < m.height; row++ {
+		r := row
+		if bottom {
+			r = m.height - row - 1
+		}
+
+		for col := 0; col < m.widthBytes; col++ {
+			if m.GetByte(r, col) != 0 {
+				return r
+			}
+		}
+	}
+
+	return
+}
+
+func (m *Mat) LeftMargin() (margin int) {
+	if m.CountBits() == 0 { // пустая матрица
+		return m.width - 1
+	}
+
+	var col int
+loop:
+	for col = 0; col < m.widthBytes; col++ {
+		for row := 0; row < m.height; row++ {
+			if m.GetByte(row, col) != 0 {
+				break loop
+			}
+		}
+	}
+
+	margin = col * 8
+
+	// поиск бита
+	for x := uint8(128); x > 0; x /= 2 {
+		for row := 0; row < m.height; row++ {
+			if m.GetByte(row, col)&x > 0 {
+				return
+			}
+		}
+		margin++
+	}
+	return
+}
+
+func (m *Mat) RightMargin() (margin int) {
+	if m.CountBits() == 0 { // пустая матрица
+		return 0
+	}
+
+	var col int
+loop:
+	for col = m.width - 1; col > -1; col-- {
+		for row := 0; row < m.height; row++ {
+			if m.GetByte(row, col) != 0 {
+				break loop
+			}
+		}
+	}
+
+	margin = (col + 1) * 8
+
+	// поиск бита
+	for x := uint8(1); x < 129; x *= 2 {
+		for row := 0; row < m.height; row++ {
+			if m.GetByte(row, col)&x > 0 {
+				margin--
+				return
+			}
+		}
+		margin--
+	}
+	return
+}
+
 func getCol(x int) int {
 	return x / 8
 }
