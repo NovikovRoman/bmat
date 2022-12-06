@@ -61,8 +61,20 @@ func (m *Mat) CountBits() (n int) {
 
 func (m *Mat) Area(x, y, width, height int) (mRes *Mat) {
 	mRes = New(width, height)
+
 	num := 0
+	if y < 0 {
+		dy := -1 * y
+		num += dy * mRes.widthBytes
+		height -= dy
+		y = 0
+	}
+
 	offset := x & 7
+	if x < 0 {
+		offset = (-1 * x) & 7
+	}
+
 	startCol := getCol(x)
 	endCol := startCol + getCol(width-1) + 1
 	for row := y; row < y+height; row++ {
@@ -71,11 +83,35 @@ func (m *Mat) Area(x, y, width, height int) (mRes *Mat) {
 		}
 
 		for col := startCol; col < endCol; col++ {
-			b := m.GetByte(col, row)
-			mRes.data[num] = b << offset
-			if offset > 0 && col+1 < m.widthBytes {
-				mRes.data[num] |= m.GetByte(col+1, row) >> (8 - offset)
+			if col < 0 {
+				num++
+				continue
 			}
+
+			var b uint8
+			if x >= 0 {
+				b = m.GetByte(col, row)
+				mRes.data[num] = b << offset
+				if offset > 0 && col+1 < m.widthBytes {
+					mRes.data[num] |= m.GetByte(col+1, row) >> (8 - offset)
+				}
+				num++
+				continue
+			}
+
+			if col == 0 {
+				b = m.GetByte(col, row)
+				mRes.data[num] = b >> offset
+
+			} else {
+				b = m.GetByte(col-1, row)
+				mRes.data[num] = b << (8 - offset)
+
+				if offset > 0 {
+					mRes.data[num] |= m.GetByte(col, row) >> offset
+				}
+			}
+
 			num++
 		}
 	}

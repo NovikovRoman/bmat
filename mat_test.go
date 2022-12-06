@@ -166,6 +166,46 @@ func TestMat_Area(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "x:6 y:-2 w:24 h:4",
+			args: args{
+				m:      m,
+				x:      6,
+				y:      -2,
+				width:  24,
+				height: 4,
+			},
+			wantMRes: &Mat{
+				width:      24,
+				widthBytes: 3,
+				height:     4,
+				data: []uint8{
+					0, 0, 0,
+					0, 0, 0,
+					0b00110010, 0b10000000, 0,
+					0b11100011, 0b10000000, 0,
+				},
+			},
+		},
+		{
+			name: "x:-2 y:0 w:24 h:2",
+			args: args{
+				m:      m,
+				x:      -2,
+				y:      0,
+				width:  24,
+				height: 2,
+			},
+			wantMRes: &Mat{
+				width:      24,
+				widthBytes: 3,
+				height:     2,
+				data: []uint8{
+					0b00101011, 0b00110010, 0b10000000,
+					0b00111000, 0b11100011, 0b10000000,
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
