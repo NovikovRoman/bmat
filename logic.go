@@ -1,5 +1,6 @@
 package bmat
 
+// Not возвращает матрицу с инвертированными битами.
 func (m *Mat) Not() (mRes *Mat) {
 	mRes = New(m.width, m.height)
 	for row := 0; row < m.height; row++ {
@@ -10,18 +11,24 @@ func (m *Mat) Not() (mRes *Mat) {
 	return
 }
 
+// And накладывает матрицы от координаты (0,0) используя логическую операцию AND.
+// Возвращает матрицу с самой большой шириной и высотой.
 func (m *Mat) And(m2 *Mat) (mRes *Mat) {
 	return m.eachByte(m2, func(b1, b2 uint8) uint8 {
 		return b1 & b2
 	})
 }
 
+// Or накладывает матрицы от координаты (0,0) используя логическую операцию OR.
+// Возвращает матрицу с самой большой шириной и высотой.
 func (m *Mat) Or(m2 *Mat) (mRes *Mat) {
 	return m.eachByte(m2, func(b1, b2 uint8) uint8 {
 		return b1 | b2
 	})
 }
 
+// Xor накладывает матрицы от координаты (0,0) используя логическую операцию XOR.
+// Возвращает матрицу с самой большой шириной и высотой.
 func (m *Mat) Xor(m2 *Mat) (mRes *Mat) {
 	return m.eachByte(m2, func(b1, b2 uint8) uint8 {
 		return b1 ^ b2
