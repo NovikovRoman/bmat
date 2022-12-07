@@ -16,7 +16,7 @@ func FromImage(im image.Image, backColor color.Color) (m *Mat) {
 		b = 0
 
 		for x := 0; x < w; x++ {
-			b = b << 1
+			b <<= 1
 
 			if im.At(x+offset.X, y+offset.Y) != backColor {
 				b += 1
@@ -53,7 +53,7 @@ func (m *Mat) ToImage() (im *image.Gray) {
 				if b&128 > 0 {
 					im.SetGray(x, row, penColor)
 				}
-				b = b << 1
+				b <<= 1
 			}
 
 		}

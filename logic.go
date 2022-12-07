@@ -35,6 +35,32 @@ func (m *Mat) Xor(m2 *Mat) (mRes *Mat) {
 	})
 }
 
+// AndByCoord накладывает матрицы от координаты (x,y) используя логическую операцию AND.
+// Возвращает матрицу с шириной и высотой текущей матрицы.
+func (m *Mat) AndByCoord(m2 *Mat, x, y int) (mRes *Mat) {
+	return m.eachByteByCoord(m2,x,y, func(b1, b2 uint8) uint8 {
+		return b1 ^ b2
+	})
+}
+
+// And накладывает матрицы от координаты (x,y) используя логическую операцию OR.
+// Возвращает матрицу с шириной и высотой текущей матрицы.
+func (m *Mat) OrXY(m2 *Mat, x, y int) (mRes *Mat) {
+	// выровнять матрицу m2 до байта. Биты выравнивания установить в 0, тк операция OR.
+	return m.eachByte(m2, func(b1, b2 uint8) uint8 {
+		return b1 & b2
+	})
+}
+
+// And накладывает матрицы от координаты (x,y) используя логическую операцию XOR.
+// Возвращает матрицу с шириной и высотой текущей матрицы.
+func (m *Mat) XorXY(m2 *Mat, x, y int) (mRes *Mat) {
+	// выровнять матрицу m2 до байта. Биты выравнивания установить в 0, тк операция XOR.
+	return m.eachByte(m2, func(b1, b2 uint8) uint8 {
+		return b1 & b2
+	})
+}
+
 func (m *Mat) eachByte(m2 *Mat, fn func(b1, b2 uint8) uint8) (mRes *Mat) {
 	width := m.width
 	widthBytes := m.widthBytes
@@ -58,4 +84,43 @@ func (m *Mat) eachByte(m2 *Mat, fn func(b1, b2 uint8) uint8) (mRes *Mat) {
 	}
 
 	return mRes
+}
+
+func (m *Mat) eachByteByCoord(m2 *Mat, x, y int, fn func(b1, b2 uint8) uint8) (mRes *Mat) {
+	var nb uint
+	if x > 0 {
+		nb = uint(x)
+	} else {
+		nb = 8 - uint(-1*x%8)
+	}
+	tMat := align(m2, nb, true)
+
+	startCol := x / 8
+	if x < 0 {
+		startCol--
+	}
+
+	mRes = m.Clone()
+	for row := y; row < y+tMat.height; row++ {
+		if row < 0 {
+			continue
+		}
+
+		if row >= mRes.height {
+			break
+		}
+
+		for col := startCol; col < startCol+tMat.widthBytes; col++ {
+			if col < 0 {
+				continue
+			}
+
+			if col >= mRes.widthBytes {
+				break
+			}
+
+			mRes.SetByte(row, col, fn(mRes.GetByte(row, col), tMat.GetByte(row-y, col-startCol)))
+		}
+	}
+	return
 }

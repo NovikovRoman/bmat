@@ -185,3 +185,108 @@ func TestMat_And(t *testing.T) {
 		})
 	}
 }
+
+var (
+	testLogicMat = &Mat{
+		width:      22,
+		height:     6,
+		widthBytes: 3,
+		data: []uint8{
+			0, 0, 0,
+			// Последние два бита в каждой строке не учитываются, тк длина 22.
+			0b01101110, 0b00001110, 0b00101000,
+			0b11001110, 0b00101010, 0b11000000,
+			0b01001110, 0b00001110, 0b10010000,
+			0b10010000, 0b01001110, 0b11001100,
+			0, 0, 0,
+		},
+	}
+)
+
+func TestMat_AndByCoord(t *testing.T) {
+	tests := []struct {
+		name     string
+		mat1     *Mat
+		mat2     *Mat
+		x        int
+		y        int
+		wantMRes *Mat
+	}{
+		{
+			name: "x:3 y:2 and",
+			mat1: testLogicMat,
+			x:    3,
+			y:    2,
+			mat2: &Mat{
+				width:      8,
+				height:     4,
+				widthBytes: 1,
+				data: []uint8{
+					0b01101110,
+					0b11001110,
+					0b01001110,
+					0b10010000,
+				},
+			},
+			wantMRes: &Mat{
+				width:      testLogicMat.width,
+				height:     testLogicMat.height,
+				widthBytes: testLogicMat.widthBytes,
+				data: []uint8{
+					0, 0, 0,
+					// Последние два бита в каждой строке не учитываются, тк длина 22.
+					0b01101110, 0b00001110, 0b00101000,
+					0b11001100, 0b00001010, 0b11000000,
+					0b01001000, 0b00001110, 0b10010000,
+					0b10000000, 0b01001110, 0b11001100,
+					0, 0, 0,
+				},
+			},
+		},
+		{
+			name: "x:-3 y:-2 and",
+			mat1: testLogicMat,
+			x:    -3,
+			y:    -2,
+			mat2: &Mat{
+				width:      8,
+				height:     4,
+				widthBytes: 1,
+				data: []uint8{
+					0b01101110,
+					0b11001110,
+					0b01001110,
+					0b10010000,
+				},
+			},
+			wantMRes: &Mat{
+				width:      testLogicMat.width,
+				height:     testLogicMat.height,
+				widthBytes: testLogicMat.widthBytes,
+				data: []uint8{
+					0, 0, 0,
+					// Последние два бита в каждой строке не учитываются, тк длина 22.
+					0b00000110, 0b00001110, 0b00101000,
+					0b11001100, 0b00001010, 0b11000000,
+					0b01001000, 0b00001110, 0b10010000,
+					0b10000000, 0b01001110, 0b11001100,
+					0, 0, 0,
+				},
+			},
+		},
+
+		/*
+			01101110 00001110 00101000
+			11001110 00101010 11000000
+			01001110 00001110 10010000
+			10010000 01001110 11001100
+		*/
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if gotMRes := tt.mat1.AndByCoord(tt.mat2, tt.x, tt.y); !reflect.DeepEqual(gotMRes, tt.wantMRes) {
+				t.Errorf("Mat.AndByCoord() = %v, want %v", gotMRes, tt.wantMRes)
+			}
+		})
+	}
+}
