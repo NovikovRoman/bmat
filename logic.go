@@ -38,26 +38,26 @@ func (m *Mat) Xor(m2 *Mat) (mRes *Mat) {
 // AndByCoord накладывает матрицы от координаты (x,y) используя логическую операцию AND.
 // Возвращает матрицу с шириной и высотой текущей матрицы.
 func (m *Mat) AndByCoord(m2 *Mat, x, y int) (mRes *Mat) {
-	return m.eachByteByCoord(m2,x,y, func(b1, b2 uint8) uint8 {
-		return b1 ^ b2
+	return m.eachByteByCoord(m2, x, y, true, func(b1, b2 uint8) uint8 {
+		return b1 & b2
 	})
 }
 
-// And накладывает матрицы от координаты (x,y) используя логическую операцию OR.
+// OrByCoord накладывает матрицы от координаты (x,y) используя логическую операцию OR.
 // Возвращает матрицу с шириной и высотой текущей матрицы.
-func (m *Mat) OrXY(m2 *Mat, x, y int) (mRes *Mat) {
+func (m *Mat) OrByCoord(m2 *Mat, x, y int) (mRes *Mat) {
 	// выровнять матрицу m2 до байта. Биты выравнивания установить в 0, тк операция OR.
-	return m.eachByte(m2, func(b1, b2 uint8) uint8 {
-		return b1 & b2
+	return m.eachByteByCoord(m2, x, y, false, func(b1, b2 uint8) uint8 {
+		return b1 | b2
 	})
 }
 
-// And накладывает матрицы от координаты (x,y) используя логическую операцию XOR.
+// XorByCoord накладывает матрицы от координаты (x,y) используя логическую операцию XOR.
 // Возвращает матрицу с шириной и высотой текущей матрицы.
-func (m *Mat) XorXY(m2 *Mat, x, y int) (mRes *Mat) {
+func (m *Mat) XorByCoord(m2 *Mat, x, y int) (mRes *Mat) {
 	// выровнять матрицу m2 до байта. Биты выравнивания установить в 0, тк операция XOR.
-	return m.eachByte(m2, func(b1, b2 uint8) uint8 {
-		return b1 & b2
+	return m.eachByteByCoord(m2, x, y, false, func(b1, b2 uint8) uint8 {
+		return b1 ^ b2
 	})
 }
 
@@ -86,14 +86,14 @@ func (m *Mat) eachByte(m2 *Mat, fn func(b1, b2 uint8) uint8) (mRes *Mat) {
 	return mRes
 }
 
-func (m *Mat) eachByteByCoord(m2 *Mat, x, y int, fn func(b1, b2 uint8) uint8) (mRes *Mat) {
+func (m *Mat) eachByteByCoord(m2 *Mat, x, y int, filled bool, fn func(b1, b2 uint8) uint8) (mRes *Mat) {
 	var nb uint
 	if x > 0 {
 		nb = uint(x)
 	} else {
 		nb = 8 - uint(-1*x%8)
 	}
-	tMat := align(m2, nb, true)
+	tMat := align(m2, nb, filled)
 
 	startCol := x / 8
 	if x < 0 {
