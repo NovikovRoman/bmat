@@ -37,6 +37,16 @@ func (m *Mat) SetByte(row, col int, b uint8) bool {
 	return true
 }
 
+func (m *Mat) Clone() (cMat *Mat) {
+	cMat = &Mat{
+		height:     m.height,
+		width:      m.width,
+		widthBytes: m.widthBytes,
+		data:       m.data[:],
+	}
+	return
+}
+
 func New(width, height int) (m *Mat) {
 	m = &Mat{
 		width:  width,

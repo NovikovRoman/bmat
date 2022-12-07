@@ -374,3 +374,35 @@ func TestMat_RightMargin(t *testing.T) {
 		})
 	}
 }
+
+func TestMat_Clone(t *testing.T) {
+	tests := []struct {
+		name    string
+		mat     *Mat
+		wantMat *Mat
+	}{
+		{
+			name:    "testMarginMat",
+			mat:     testMarginMat,
+			wantMat: testMarginMat,
+		},
+		{
+			name:    "testEmptyMat",
+			mat:     testEmptyMat,
+			wantMat: testEmptyMat,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotMat := tt.mat.Clone()
+
+			if &gotMat == &tt.mat {
+				t.Errorf("gotMat pointer equal tt.mat")
+			}
+
+			if !reflect.DeepEqual(gotMat, tt.wantMat) {
+				t.Errorf("Mat.Clone() = %v, want %v", gotMat, tt.wantMat)
+			}
+		})
+	}
+}
