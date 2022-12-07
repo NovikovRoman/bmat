@@ -1,5 +1,7 @@
 package bmat
 
+import "fmt"
+
 type Mat struct {
 	// реальная ширина
 	width int
@@ -22,6 +24,17 @@ func (m *Mat) Height() int {
 	return m.height
 }
 
+func (m *Mat) DataToString() string {
+	s := ""
+	for row := 0; row < m.height; row++ {
+		for col := 0; col < m.widthBytes; col++ {
+			s += fmt.Sprintf("%08b ", m.GetByte(row, col))
+		}
+		s += "\n"
+	}
+	return s
+}
+
 func (m *Mat) GetByte(row, col int) uint8 {
 	if m.widthBytes <= col || m.height <= row {
 		return 0
@@ -42,8 +55,8 @@ func (m *Mat) Clone() (cMat *Mat) {
 		height:     m.height,
 		width:      m.width,
 		widthBytes: m.widthBytes,
-		data:       m.data[:],
 	}
+	cMat.data = append(cMat.data, m.data...)
 	return
 }
 
