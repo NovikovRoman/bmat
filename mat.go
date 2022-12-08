@@ -1,6 +1,8 @@
 package bmat
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type Mat struct {
 	// реальная ширина
@@ -146,14 +148,14 @@ func (m *Mat) Area(x, y, width, height int) (mRes *Mat) {
 }
 
 func (m *Mat) TopMargin() (margin int) {
-	return m.horizontalMargin(false)
+	return m.vertMargin(false)
 }
 
 func (m *Mat) BottomMargin() (margin int) {
-	return m.horizontalMargin(true)
+	return m.vertMargin(true)
 }
 
-func (m *Mat) horizontalMargin(bottom bool) (margin int) {
+func (m *Mat) vertMargin(bottom bool) (margin int) {
 	if m.CountBits() == 0 { // пустая матрица
 		if bottom {
 			return 0
@@ -173,7 +175,6 @@ func (m *Mat) horizontalMargin(bottom bool) (margin int) {
 			}
 		}
 	}
-
 	return
 }
 
@@ -183,15 +184,11 @@ func (m *Mat) LeftMargin() (margin int) {
 	}
 
 	var col int
-loop:
 	for col = 0; col < m.widthBytes; col++ {
-		for row := 0; row < m.height; row++ {
-			if m.GetByte(row, col) != 0 {
-				break loop
-			}
+		if !m.emptyColumn(col) {
+			break
 		}
 	}
-
 	margin = col * 8
 
 	// поиск бита
@@ -212,15 +209,11 @@ func (m *Mat) RightMargin() (margin int) {
 	}
 
 	var col int
-loop:
 	for col = m.width - 1; col > -1; col-- {
-		for row := 0; row < m.height; row++ {
-			if m.GetByte(row, col) != 0 {
-				break loop
-			}
+		if !m.emptyColumn(col) {
+			break
 		}
 	}
-
 	margin = (col + 1) * 8
 
 	// поиск бита
@@ -234,6 +227,15 @@ loop:
 		margin--
 	}
 	return
+}
+
+func (m *Mat) emptyColumn(col int) bool {
+	for row := 0; row < m.height; row++ {
+		if m.GetByte(row, col) != 0 {
+			return false
+		}
+	}
+	return true
 }
 
 func getCol(x int) int {
