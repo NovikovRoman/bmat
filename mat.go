@@ -24,6 +24,10 @@ func (m *Mat) Height() int {
 	return m.height
 }
 
+func (m *Mat) Data() []uint8 {
+	return m.data
+}
+
 func (m *Mat) DataToString() string {
 	s := ""
 	for row := 0; row < m.height; row++ {
