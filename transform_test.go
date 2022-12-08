@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func Test_byteShift(t *testing.T) {
+func Test_ByteShift(t *testing.T) {
 	m := &Mat{
 		width:      22,
 		height:     6,
@@ -69,7 +69,7 @@ func Test_byteShift(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if gotMat := byteShift(m, tt.numBytes); !reflect.DeepEqual(gotMat, tt.wantMat) {
+			if gotMat := m.ByteShift(tt.numBytes); !reflect.DeepEqual(gotMat, tt.wantMat) {
 				t.Errorf("align() = %v, want %v", gotMat, tt.wantMat)
 			}
 		})

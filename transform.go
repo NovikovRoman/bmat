@@ -4,9 +4,8 @@ import (
 	"math"
 )
 
-// byteShift сдвигает матрицу по байтам по горизонтали.
-// filling заполнить новые байты и края за реальной шириной единицами.
-func byteShift(m *Mat, numBytes int) (aMat *Mat) {
+// ByteShift сдвигает матрицу по байтам по горизонтали.
+func (m *Mat) ByteShift(numBytes int) (aMat *Mat) {
 	if numBytes == 0 {
 		return m.Clone()
 	}
