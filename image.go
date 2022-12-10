@@ -12,24 +12,24 @@ func FromImage(im image.Image, backColor color.Color) (m *Mat) {
 	m = New(w, h)
 
 	var b uint8
-	for y := 0; y < h; y++ {
+	for row := 0; row < h; row++ {
 		b = 0
 
 		for x := 0; x < w; x++ {
 			b <<= 1
 
-			if im.At(x+offset.X, y+offset.Y) != backColor {
+			if im.At(x+offset.X, row+offset.Y) != backColor {
 				b += 1
 			}
 
 			if x&7 == 7 {
-				m.data[y*m.widthBytes+x/8] = b
+				m.SetByte(row, x/8, b)
 				b = 0
 			}
 		}
 
 		if w&7 != 0 {
-			m.data[y*m.widthBytes+w/8] = b << (m.widthBytes*8 - w)
+			m.SetByte(row, w/8, b<<(m.Cols()*8-w))
 		}
 	}
 	return
@@ -37,10 +37,10 @@ func FromImage(im image.Image, backColor color.Color) (m *Mat) {
 
 func (m *Mat) ToImage() (im *image.Gray) {
 	penColor := color.Gray{Y: 255}
-	im = image.NewGray(image.Rect(0, 0, m.width, m.height))
+	im = image.NewGray(image.Rect(0, 0, m.Width(), m.Height()))
 
-	for row := 0; row < m.height; row++ {
-		for col := 0; col < m.widthBytes; col++ {
+	for row := 0; row < m.Rows(); row++ {
+		for col := 0; col < m.Cols(); col++ {
 			b := m.GetByte(row, col)
 
 			for dx := 0; dx < 8; dx++ {

@@ -10,6 +10,7 @@ func TestNew(t *testing.T) {
 		width  int
 		height int
 	}
+
 	tests := []struct {
 		name string
 		args args
@@ -22,10 +23,8 @@ func TestNew(t *testing.T) {
 				height: 2,
 			},
 			want: &Mat{
-				width:      8,
-				widthBytes: 1,
-				height:     2,
-				data:       make([]uint8, 2),
+				width: 8,
+				data:  [][]uint8{{0}, {0}},
 			},
 		},
 		{
@@ -35,10 +34,8 @@ func TestNew(t *testing.T) {
 				height: 1,
 			},
 			want: &Mat{
-				width:      9,
-				height:     1,
-				widthBytes: 2,
-				data:       make([]uint8, 2),
+				width: 9,
+				data:  [][]uint8{{0, 0}},
 			},
 		},
 	}
@@ -60,27 +57,22 @@ func TestMat_CountBits(t *testing.T) {
 		{
 			name: "8x2",
 			mat: &Mat{
-				width:      8,
-				widthBytes: 1,
-				height:     2,
-				data:       []uint8{0b01010101, 0b10101010},
+				width: 8,
+				data:  [][]uint8{{0b01010101}, {0b10101010}},
 			},
 			wantN: 8,
 		},
 		{
 			name: "10x2",
 			mat: &Mat{
-				width:      10,
-				widthBytes: 2,
-				height:     2,
-				data:       []uint8{0b01010101, 0b01000000, 0b10101010, 0b10000000},
+				width: 10,
+				data:  [][]uint8{{0b01010101, 0b01000000}, {0b10101010, 0b10000000}},
 			},
 			wantN: 10,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
 			if gotN := tt.mat.CountBits(); gotN != tt.wantN {
 				t.Errorf("Mat.CountBits() = %v, want %v", gotN, tt.wantN)
 			}
@@ -90,12 +82,10 @@ func TestMat_CountBits(t *testing.T) {
 
 func TestMat_Area(t *testing.T) {
 	m := &Mat{
-		width:      16,
-		height:     2,
-		widthBytes: 2,
-		data: []uint8{
-			0b10101100, 0b11001010,
-			0b11100011, 0b10001110,
+		width: 16,
+		data: [][]uint8{
+			{0b10101100, 0b11001010},
+			{0b11100011, 0b10001110},
 		},
 	}
 	type args struct {
@@ -120,12 +110,8 @@ func TestMat_Area(t *testing.T) {
 				height: 1,
 			},
 			wantMRes: &Mat{
-				width:      8,
-				widthBytes: 1,
-				height:     1,
-				data: []uint8{
-					0b10110011,
-				},
+				width: 8,
+				data:  [][]uint8{{0b10110011}},
 			},
 		},
 		{
@@ -138,12 +124,10 @@ func TestMat_Area(t *testing.T) {
 				height: 2,
 			},
 			wantMRes: &Mat{
-				width:      12,
-				widthBytes: 2,
-				height:     2,
-				data: []uint8{
-					0b10110011, 0b00101000,
-					0b10001110, 0b00111000,
+				width: 12,
+				data: [][]uint8{
+					{0b10110011, 0b00101000},
+					{0b10001110, 0b00111000},
 				},
 			},
 		},
@@ -157,12 +141,10 @@ func TestMat_Area(t *testing.T) {
 				height: 2,
 			},
 			wantMRes: &Mat{
-				width:      24,
-				widthBytes: 3,
-				height:     2,
-				data: []uint8{
-					0b11100011, 0b10000000, 0,
-					0, 0, 0,
+				width: 24,
+				data: [][]uint8{
+					{0b11100011, 0b10000000, 0},
+					{0, 0, 0},
 				},
 			},
 		},
@@ -176,14 +158,12 @@ func TestMat_Area(t *testing.T) {
 				height: 4,
 			},
 			wantMRes: &Mat{
-				width:      24,
-				widthBytes: 3,
-				height:     4,
-				data: []uint8{
-					0, 0, 0,
-					0, 0, 0,
-					0b00110010, 0b10000000, 0,
-					0b11100011, 0b10000000, 0,
+				width: 24,
+				data: [][]uint8{
+					{0, 0, 0},
+					{0, 0, 0},
+					{0b00110010, 0b10000000, 0},
+					{0b11100011, 0b10000000, 0},
 				},
 			},
 		},
@@ -197,12 +177,27 @@ func TestMat_Area(t *testing.T) {
 				height: 2,
 			},
 			wantMRes: &Mat{
-				width:      24,
-				widthBytes: 3,
-				height:     2,
-				data: []uint8{
-					0b00101011, 0b00110010, 0b10000000,
-					0b00111000, 0b11100011, 0b10000000,
+				width: 24,
+				data: [][]uint8{
+					{0b00101011, 0b00110010, 0b10000000},
+					{0b00111000, 0b11100011, 0b10000000},
+				},
+			},
+		},
+		{
+			name: "x:-20 y:0 w:24 h:2",
+			args: args{
+				m:      m,
+				x:      -20,
+				y:      0,
+				width:  24,
+				height: 2,
+			},
+			wantMRes: &Mat{
+				width: 24,
+				data: [][]uint8{
+					{0, 0, 0b00001010},
+					{0, 0, 0b00001110},
 				},
 			},
 		},
@@ -218,31 +213,27 @@ func TestMat_Area(t *testing.T) {
 
 var (
 	testMarginMat = &Mat{
-		width:      22,
-		height:     8,
-		widthBytes: 3,
-		data: []uint8{
-			0, 0, 0,
-			0, 0, 0,
+		width: 22,
+		data: [][]uint8{
+			{0, 0, 0},
+			{0, 0, 0},
 			// Последние два бита в каждой строке не учитываются, тк длина 22.
-			0b00000000, 0b00001110, 0b00000000,
-			0b00000000, 0b00101010, 0b11000000,
-			0b00000000, 0b00001110, 0b10010000,
-			0b00000000, 0b00001110, 0b00000000,
-			0, 0, 0,
-			0, 0, 0,
+			{0b00000000, 0b00001110, 0b00000000},
+			{0b00000000, 0b00101010, 0b11000000},
+			{0b00000000, 0b00001110, 0b10010000},
+			{0b00000000, 0b00001110, 0b00000000},
+			{0, 0, 0},
+			{0, 0, 0},
 		},
 	}
 	testEmptyMat = &Mat{
-		width:      22,
-		height:     5,
-		widthBytes: 3,
-		data: []uint8{
-			0, 0, 0,
-			0, 0, 0,
-			0, 0, 0,
-			0, 0, 0,
-			0, 0, 0,
+		width: 22,
+		data: [][]uint8{
+			{0, 0, 0},
+			{0, 0, 0},
+			{0, 0, 0},
+			{0, 0, 0},
+			{0, 0, 0},
 		},
 	}
 )
@@ -342,19 +333,17 @@ func TestMat_RightMargin(t *testing.T) {
 		{
 			name: "right 12",
 			mat: &Mat{
-				width:      22,
-				height:     8,
-				widthBytes: 3,
-				data: []uint8{
-					0, 0, 0,
-					0, 0, 0,
+				width: 22,
+				data: [][]uint8{
+					{0, 0, 0},
+					{0, 0, 0},
 					// Последние два бита в каждой строке не учитываются, тк длина 22.
-					0b00000000, 0b00001000, 0b00000000,
-					0b00000000, 0b01100000, 0b00000000,
-					0b00000000, 0b01001000, 0b00000000,
-					0b00000000, 0b00100000, 0b00000000,
-					0, 0, 0,
-					0, 0, 0,
+					{0b00000000, 0b00001000, 0b00000000},
+					{0b00000000, 0b01100000, 0b00000000},
+					{0b00000000, 0b01001000, 0b00000000},
+					{0b00000000, 0b00100000, 0b00000000},
+					{0, 0, 0},
+					{0, 0, 0},
 				},
 			},
 			wantMargin: 12,
@@ -395,7 +384,6 @@ func TestMat_Clone(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			gotMat := tt.mat.Clone()
-
 			if &gotMat == &tt.mat {
 				t.Errorf("gotMat pointer equal tt.mat")
 			}

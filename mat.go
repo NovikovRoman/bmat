@@ -7,33 +7,36 @@ import (
 type Mat struct {
 	// реальная ширина
 	width int
-	// ширина в байтах
-	widthBytes int
-	height     int
 	// по ширине выравнивается до байта
-	data []uint8
+	data [][]uint8
 }
 
-func (m *Mat) Width() int {
+func (m Mat) Width() int {
 	return m.width
 }
 
-func (m *Mat) WidthBytes() int {
-	return m.widthBytes
-}
-
 func (m *Mat) Height() int {
-	return m.height
+	return len(m.data)
+}
+func (m *Mat) Cols() int {
+	if len(m.data) == 0 {
+		return 0
+	}
+	return len(m.data[0])
 }
 
-func (m *Mat) Data() []uint8 {
+func (m *Mat) Rows() int {
+	return len(m.data)
+}
+
+func (m *Mat) Data() [][]uint8 {
 	return m.data
 }
 
 func (m *Mat) DataToString() string {
 	s := ""
-	for row := 0; row < m.height; row++ {
-		for col := 0; col < m.widthBytes; col++ {
+	for row := 0; row < m.Rows(); row++ {
+		for col := 0; col < m.Cols(); col++ {
 			s += fmt.Sprintf("%08b ", m.GetByte(row, col))
 		}
 		s += "\n"
@@ -42,48 +45,54 @@ func (m *Mat) DataToString() string {
 }
 
 func (m *Mat) GetByte(row, col int) uint8 {
-	if m.widthBytes <= col || m.height <= row {
+	if m.Cols() <= col || m.Rows() <= row {
 		return 0
 	}
-	return m.data[row*m.widthBytes+col]
+	return m.data[row][col]
 }
 
 func (m *Mat) SetByte(row, col int, b uint8) bool {
-	if m.widthBytes <= col || m.height <= row {
+	if col < 0 || row < 0 || m.Cols() <= col || m.Rows() <= row {
 		return false
 	}
-	m.data[row*m.widthBytes+col] = b
+	m.data[row][col] = b
 	return true
 }
 
 func (m *Mat) Clone() (cMat *Mat) {
 	cMat = &Mat{
-		height:     m.height,
-		width:      m.width,
-		widthBytes: m.widthBytes,
+		width: m.Width(),
+		data:  make([][]uint8, m.Rows()),
 	}
-	cMat.data = append(cMat.data, m.data...)
+
+	for i := range m.data {
+		cMat.data[i] = append(cMat.data[i], m.data[i]...)
+	}
 	return
 }
 
 func New(width, height int) (m *Mat) {
 	m = &Mat{
-		width:  width,
-		height: height,
+		width: width,
 	}
 
-	m.widthBytes = width / 8
+	rows := width / 8
 	if width%8 > 0 {
-		m.widthBytes++
+		rows++
 	}
 
-	m.data = make([]uint8, m.widthBytes*height)
+	m.data = make([][]uint8, height)
+	for i := range m.data {
+		m.data[i] = make([]uint8, rows)
+	}
 	return
 }
 
 func (m *Mat) CountBits() (n int) {
-	for _, b := range m.data {
-		n += bits(b)
+	for row := 0; row < m.Rows(); row++ {
+		for col := 0; col < m.Cols(); col++ {
+			n += Bits(m.GetByte(row, col))
+		}
 	}
 	return
 }
@@ -91,57 +100,54 @@ func (m *Mat) CountBits() (n int) {
 func (m *Mat) Area(x, y, width, height int) (mRes *Mat) {
 	mRes = New(width, height)
 
-	num := 0
+	offsetRow := y
 	if y < 0 {
-		dy := -1 * y
-		num += dy * mRes.widthBytes
-		height -= dy
+		height -= -1 * y
 		y = 0
 	}
 
-	offset := x & 7
+	offsetCol := x / 8
+	var offset int
 	if x < 0 {
 		offset = (-1 * x) & 7
+	} else {
+		offset = x & 7
 	}
 
-	startCol := getCol(x)
-	endCol := startCol + getCol(width-1) + 1
+	startCol := x / 8
+	endCol := startCol + (width-1)/8 + 1
 	for row := y; row < y+height; row++ {
-		if row >= m.height {
+		if row >= m.Rows() {
 			break
 		}
 
 		for col := startCol; col < endCol; col++ {
 			if col < 0 {
-				num++
 				continue
 			}
 
-			var b uint8
 			if x >= 0 {
-				b = m.GetByte(row, col)
-				mRes.data[num] = b << offset
-				if offset > 0 && col+1 < m.widthBytes {
-					mRes.data[num] |= m.GetByte(row, col+1) >> (8 - offset)
+				if col >= m.Cols() {
+					break
 				}
-				num++
+
+				mRes.data[row-offsetRow][col-offsetCol] = m.data[row][col] << offset
+				if offset > 0 && col+1 < m.Cols() {
+					mRes.data[row-offsetRow][col-offsetCol] |= m.data[row][col+1] >> (8 - offset)
+				}
 				continue
 			}
 
 			if col == 0 {
-				b = m.GetByte(row, col)
-				mRes.data[num] = b >> offset
+				mRes.data[row-offsetRow][col-offsetCol] = m.data[row][col] >> offset
 
 			} else {
-				b = m.GetByte(row, col-1)
-				mRes.data[num] = b << (8 - offset)
+				mRes.data[row-offsetRow][col-offsetCol] = m.data[row][col-1] << (8 - offset)
 
-				if offset > 0 {
-					mRes.data[num] |= m.GetByte(row, col) >> offset
+				if offset > 0 && col < m.Cols() {
+					mRes.data[row-offsetRow][col-offsetCol] |= m.data[row][col] >> offset
 				}
 			}
-
-			num++
 		}
 	}
 	return
@@ -156,45 +162,41 @@ func (m *Mat) BottomMargin() (margin int) {
 }
 
 func (m *Mat) vertMargin(bottom bool) (margin int) {
-	if m.CountBits() == 0 { // пустая матрица
-		if bottom {
-			return 0
-		}
-		return m.height - 1
-	}
-
-	for row := 0; row < m.height; row++ {
+	for row := 0; row < m.Rows(); row++ {
 		r := row
 		if bottom {
-			r = m.height - row - 1
+			r = m.Rows() - row - 1
 		}
 
-		for col := 0; col < m.widthBytes; col++ {
-			if m.GetByte(r, col) != 0 {
+		for col := 0; col < m.Cols(); col++ {
+			if m.data[r][col] != 0 {
 				return r
 			}
 		}
+	}
+
+	if !bottom {
+		return m.Rows() - 1
 	}
 	return
 }
 
 func (m *Mat) LeftMargin() (margin int) {
-	if m.CountBits() == 0 { // пустая матрица
-		return m.width - 1
-	}
-
 	var col int
-	for col = 0; col < m.widthBytes; col++ {
+	for col = 0; col < m.Cols(); col++ {
 		if !m.emptyColumn(col) {
 			break
 		}
 	}
 	margin = col * 8
+	if margin >= m.width {
+		return m.width - 1
+	}
 
 	// поиск бита
 	for x := uint8(128); x > 0; x /= 2 {
-		for row := 0; row < m.height; row++ {
-			if m.GetByte(row, col)&x > 0 {
+		for row := 0; row < m.Rows(); row++ {
+			if m.data[row][col]&x > 0 {
 				return
 			}
 		}
@@ -204,22 +206,23 @@ func (m *Mat) LeftMargin() (margin int) {
 }
 
 func (m *Mat) RightMargin() (margin int) {
-	if m.CountBits() == 0 { // пустая матрица
-		return 0
-	}
-
 	var col int
-	for col = m.width - 1; col > -1; col-- {
+	for col = m.Cols() - 1; col > -2; col-- {
+		if col < 0 {
+			return 0
+		}
+
 		if !m.emptyColumn(col) {
 			break
 		}
 	}
+
 	margin = (col + 1) * 8
 
 	// поиск бита
 	for x := uint8(1); x < 129; x *= 2 {
-		for row := 0; row < m.height; row++ {
-			if m.GetByte(row, col)&x > 0 {
+		for row := 0; row < m.Rows(); row++ {
+			if m.data[row][col]&x > 0 {
 				margin--
 				return
 			}
@@ -230,19 +233,15 @@ func (m *Mat) RightMargin() (margin int) {
 }
 
 func (m *Mat) emptyColumn(col int) bool {
-	for row := 0; row < m.height; row++ {
-		if m.GetByte(row, col) != 0 {
+	for row := 0; row < m.Rows(); row++ {
+		if m.data[row][col] != 0 {
 			return false
 		}
 	}
 	return true
 }
 
-func getCol(x int) int {
-	return x / 8
-}
-
-func bits(b uint8) (n int) {
+func Bits(b uint8) (n int) {
 	// Единственный случай, когда ответ 0.
 	if b == 0 {
 		return 0

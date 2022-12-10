@@ -5,205 +5,88 @@ import (
 	"testing"
 )
 
-func TestMat_And(t *testing.T) {
-	m1_8x1 := &Mat{
-		width:      8,
-		widthBytes: 1,
-		height:     1,
-		data:       []uint8{0b00001111},
+var (
+	testLogicM_8x1 = &Mat{
+		width: 8,
+		data:  [][]uint8{{0b00001111}},
 	}
-	m2_8x1 := &Mat{
-		width:      8,
-		widthBytes: 1,
-		height:     1,
-		data:       []uint8{0b00000111},
+	testLogicM_8x2 = &Mat{
+		width: 8,
+		data:  [][]uint8{{0b11110000}, {0b00001111}},
 	}
-	m_8x2 := &Mat{
-		width:      8,
-		widthBytes: 1,
-		height:     2,
-		data:       []uint8{0b11110000, 0b00001111},
+	testLogicM_12x2 = &Mat{
+		width: 12,
+		data:  [][]uint8{{0b11001100, 0b11000000}, {0b00110011, 0b00110000}},
 	}
-	m_12x2 := &Mat{
-		width:      12,
-		widthBytes: 2,
-		height:     2,
-		data:       []uint8{0b11001100, 0b11000000, 0b00110011, 0b00110000},
+	testLogicM_22x6 = &Mat{
+		width: 22,
+		data: [][]uint8{
+			{0, 0, 0},
+			// Последние два бита в каждой строке не учитываются, тк длина 22.
+			{0b01101110, 0b00001110, 0b00101000},
+			{0b11001110, 0b00101010, 0b11000000},
+			{0b01001110, 0b00001110, 0b10010000},
+			{0b10010000, 0b01001110, 0b11001100},
+			{0, 0, 0},
+		},
 	}
+)
+
+func TestMat_Not(t *testing.T) {
 	tests := []struct {
 		name    string
-		m1      *Mat
-		m2      *Mat
-		logic   string
+		mat     *Mat
 		wantRes *Mat
 	}{
 		{
-			name:  "NOT",
-			m1:    m1_8x1,
-			m2:    nil,
-			logic: "not",
+			name: "8x1",
+			mat:  testLogicM_8x1,
 			wantRes: &Mat{
-				width:      8,
-				widthBytes: 1,
-				height:     1,
-				data:       []uint8{0b11110000},
+				width: 8,
+				data:  [][]uint8{{0b11110000}},
 			},
 		},
 		{
-			name:  "одинаковые AND",
-			m1:    m1_8x1,
-			m2:    m2_8x1,
-			logic: "and",
+			name: "8x2",
+			mat:  testLogicM_8x2,
 			wantRes: &Mat{
-				width:      8,
-				widthBytes: 1,
-				height:     1,
-				data:       []uint8{0b00000111},
+				width: 8,
+				data:  [][]uint8{{0b00001111}, {0b11110000}},
 			},
 		},
 		{
-			name:  "одинаковые OR",
-			m1:    m1_8x1,
-			m2:    m2_8x1,
-			logic: "or",
+			name: "12x2",
+			mat:  testLogicM_12x2,
 			wantRes: &Mat{
-				width:      8,
-				widthBytes: 1,
-				height:     1,
-				data:       []uint8{0b00001111},
+				width: 12,
+				// последние 4 бита каждой строки не учавствуют в операции, тк реальная длина 12
+				data: [][]uint8{{0b00110011, 0b00110000}, {0b11001100, 0b11000000}},
 			},
 		},
 		{
-			name:  "одинаковые XOR",
-			m1:    m1_8x1,
-			m2:    m2_8x1,
-			logic: "xor",
-			wantRes: &Mat{
-				width:      8,
-				widthBytes: 1,
-				height:     1,
-				data:       []uint8{0b00001000},
+			name: "12x2",
+			mat: &Mat{
+				width: 12,
+				data:  [][]uint8{{0b11001100, 0b11001001}, {0b00110011, 0b00110110}},
 			},
-		},
-		{
-			name:  "разная высота AND",
-			m1:    m1_8x1,
-			m2:    m_8x2,
-			logic: "and",
 			wantRes: &Mat{
-				width:      8,
-				widthBytes: 1,
-				height:     2,
-				data:       []uint8{0, 0},
-			},
-		},
-		{
-			name:  "разная высота OR",
-			m1:    m1_8x1,
-			m2:    m_8x2,
-			logic: "or",
-			wantRes: &Mat{
-				width:      8,
-				widthBytes: 1,
-				height:     2,
-				data:       []uint8{0b11111111, 0b00001111},
-			},
-		},
-		{
-			name:  "разная высота XOR",
-			m1:    m1_8x1,
-			m2:    m_8x2,
-			logic: "xor",
-			wantRes: &Mat{
-				width:      8,
-				widthBytes: 1,
-				height:     2,
-				data:       []uint8{0b11111111, 0b00001111},
-			},
-		},
-		{
-			name:  "разные ширина и высота AND",
-			m1:    m1_8x1,
-			m2:    m_12x2,
-			logic: "and",
-			wantRes: &Mat{
-				width:      12,
-				widthBytes: 2,
-				height:     2,
-				data:       []uint8{0b00001100, 0, 0, 0},
-			},
-		},
-		{
-			name:  "разные ширина и высота OR",
-			m1:    m1_8x1,
-			m2:    m_12x2,
-			logic: "or",
-			wantRes: &Mat{
-				width:      12,
-				widthBytes: 2,
-				height:     2,
-				data:       []uint8{0b11001111, 0b11000000, 0b00110011, 0b00110000},
-			},
-		},
-		{
-			name:  "разные ширина и высота XOR",
-			m1:    m1_8x1,
-			m2:    m_12x2,
-			logic: "xor",
-			wantRes: &Mat{
-				width:      12,
-				widthBytes: 2,
-				height:     2,
-				data:       []uint8{0b11000011, 0b11000000, 0b00110011, 0b00110000},
+				width: 12,
+				// последние 4 бита каждой строки не учавствуют в операции, тк реальная длина 12
+				data: [][]uint8{{0b00110011, 0b00111001}, {0b11001100, 0b11000110}},
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			switch tt.logic {
-			case "and":
-				if gotRes := tt.m1.And(tt.m2); !reflect.DeepEqual(gotRes, tt.wantRes) {
-					t.Errorf("Mat.And() = %v, want %v", gotRes, tt.wantRes)
-				}
-			case "or":
-				if gotRes := tt.m1.Or(tt.m2); !reflect.DeepEqual(gotRes, tt.wantRes) {
-					t.Errorf("Mat.Or() = %v, want %v", gotRes, tt.wantRes)
-				}
-			case "xor":
-				if gotRes := tt.m1.Xor(tt.m2); !reflect.DeepEqual(gotRes, tt.wantRes) {
-					t.Errorf("Mat.Xor() = %v, want %v", gotRes, tt.wantRes)
-				}
-
-			case "not":
-				if gotRes := tt.m1.Not(); !reflect.DeepEqual(gotRes, tt.wantRes) {
-					t.Errorf("Mat.Not() = %v, want %v", gotRes, tt.wantRes)
-				}
-
-			default:
-				t.Errorf("Unknown logic %s", tt.logic)
+			gotRes := tt.mat.Clone()
+			if gotRes.Not(); !reflect.DeepEqual(gotRes, tt.wantRes) {
+				t.Errorf("Mat.Not() = %v, want %v", gotRes, tt.wantRes)
 			}
 		})
 	}
 }
 
-var (
-	testLogicMat = &Mat{
-		width:      22,
-		height:     6,
-		widthBytes: 3,
-		data: []uint8{
-			0, 0, 0,
-			// Последние два бита в каждой строке не учитываются, тк длина 22.
-			0b01101110, 0b00001110, 0b00101000,
-			0b11001110, 0b00101010, 0b11000000,
-			0b01001110, 0b00001110, 0b10010000,
-			0b10010000, 0b01001110, 0b11001100,
-			0, 0, 0,
-		},
-	}
-)
-
-func TestMat_AndByCoord(t *testing.T) {
+func TestMat_And(t *testing.T) {
 	tests := []struct {
 		name     string
 		mat1     *Mat
@@ -214,82 +97,69 @@ func TestMat_AndByCoord(t *testing.T) {
 	}{
 		{
 			name: "x:3 y:2",
-			mat1: testLogicMat.Clone(),
+			mat1: testLogicM_22x6.Clone(),
 			x:    3,
 			y:    2,
 			mat2: &Mat{
-				width:      8,
-				height:     4,
-				widthBytes: 1,
-				data: []uint8{
-					0b01101110,
-					0b11001110,
-					0b01001110,
-					0b10010000,
+				width: 8,
+				data: [][]uint8{
+					{0b01101110},
+					{0b11001110},
+					{0b01001110},
+					{0b10010000},
 				},
 			},
 			wantMRes: &Mat{
-				width:      testLogicMat.width,
-				height:     testLogicMat.height,
-				widthBytes: testLogicMat.widthBytes,
-				data: []uint8{
-					0, 0, 0,
+				width: testLogicM_22x6.width,
+				data: [][]uint8{
+					{0, 0, 0},
 					// Последние два бита в каждой строке не учитываются, тк длина 22.
-					0b01101110, 0b00001110, 0b00101000,
-					0b11001100, 0b00001010, 0b11000000,
-					0b01001000, 0b00001110, 0b10010000,
-					0b10000000, 0b01001110, 0b11001100,
-					0, 0, 0,
+					{0b01101110, 0b00001110, 0b00101000},
+					{0b11001100, 0b00001010, 0b11000000},
+					{0b01001000, 0b00001110, 0b10010000},
+					{0b10000000, 0b01001110, 0b11001100},
+					{0, 0, 0},
 				},
 			},
 		},
 		{
 			name: "x:-3 y:-2",
-			mat1: testLogicMat.Clone(),
+			mat1: testLogicM_22x6.Clone(),
 			x:    -3,
 			y:    -2,
 			mat2: &Mat{
-				width:      8,
-				height:     4,
-				widthBytes: 1,
-				data: []uint8{
-					0b01101110,
-					0b11001110,
-					0b01001110,
-					0b10010000,
+				width: 8,
+				data: [][]uint8{
+					{0b01101110},
+					{0b11001110},
+					{0b01001110},
+					{0b10010000},
 				},
 			},
 			wantMRes: &Mat{
-				width:      testLogicMat.width,
-				height:     testLogicMat.height,
-				widthBytes: testLogicMat.widthBytes,
-				data: []uint8{
-					0, 0, 0,
+				width: testLogicM_22x6.width,
+				data: [][]uint8{
+					{0, 0, 0},
 					// Последние два бита в каждой строке не учитываются, тк длина 22.
-					0b00000110, 0b00001110, 0b00101000,
-					0b11001110, 0b00101010, 0b11000000,
-					0b01001110, 0b00001110, 0b10010000,
-					0b10010000, 0b01001110, 0b11001100,
-					0, 0, 0,
+					{0b00000110, 0b00001110, 0b00101000},
+					{0b11001110, 0b00101010, 0b11000000},
+					{0b01001110, 0b00001110, 0b10010000},
+					{0b10010000, 0b01001110, 0b11001100},
+					{0, 0, 0},
 				},
 			},
 		},
-		/*
-
-		 01110111
-		 10000111
-		*/
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if gotMRes := tt.mat1.AndByCoord(tt.mat2, tt.x, tt.y); !reflect.DeepEqual(gotMRes, tt.wantMRes) {
-				t.Errorf("Mat.AndByCoord() = %v, want %v", gotMRes, tt.wantMRes)
+			if tt.mat1.And(tt.mat2, tt.x, tt.y); !reflect.DeepEqual(tt.mat1, tt.wantMRes) {
+				t.Errorf("Mat.AndByCoord() = %v, want %v", tt.mat1, tt.wantMRes)
 			}
 		})
 	}
 }
 
-func TestMat_OrByCoord(t *testing.T) {
+func TestMat_Or(t *testing.T) {
 	tests := []struct {
 		name    string
 		mat1    *Mat
@@ -300,77 +170,69 @@ func TestMat_OrByCoord(t *testing.T) {
 	}{
 		{
 			name: "x:3 y:2",
-			mat1: testLogicMat.Clone(),
+			mat1: testLogicM_22x6.Clone(),
 			x:    3,
 			y:    2,
 			mat2: &Mat{
-				width:      8,
-				height:     4,
-				widthBytes: 1,
-				data: []uint8{
-					0b01101110,
-					0b11001110,
-					0b01001110,
-					0b10010000,
+				width: 8,
+				data: [][]uint8{
+					{0b01101110},
+					{0b11001110},
+					{0b01001110},
+					{0b10010000},
 				},
 			},
 			wantRes: &Mat{
-				width:      testLogicMat.width,
-				height:     testLogicMat.height,
-				widthBytes: testLogicMat.widthBytes,
-				data: []uint8{
-					0, 0, 0,
+				width: testLogicM_22x6.width,
+				data: [][]uint8{
+					{0, 0, 0},
 					// Последние два бита в каждой строке не учитываются, тк длина 22.
-					0b01101110, 0b00001110, 0b00101000,
-					0b11001111, 0b11101010, 0b11000000,
-					0b01011111, 0b11001110, 0b10010000,
-					0b10011001, 0b11001110, 0b11001100,
-					0b00010010, 0, 0,
+					{0b01101110, 0b00001110, 0b00101000},
+					{0b11001111, 0b11101010, 0b11000000},
+					{0b01011111, 0b11001110, 0b10010000},
+					{0b10011001, 0b11001110, 0b11001100},
+					{0b00010010, 0, 0},
 				},
 			},
 		},
 		{
 			name: "x:-3 y:-2",
-			mat1: testLogicMat.Clone(),
+			mat1: testLogicM_22x6.Clone(),
 			x:    -3,
 			y:    -2,
 			mat2: &Mat{
-				width:      8,
-				height:     4,
-				widthBytes: 1,
-				data: []uint8{
-					0b01101110,
-					0b11001110,
-					0b01001110,
-					0b10010000,
+				width: 8,
+				data: [][]uint8{
+					{0b01101110},
+					{0b11001110},
+					{0b01001110},
+					{0b10010000},
 				},
 			},
 			wantRes: &Mat{
-				width:      testLogicMat.width,
-				height:     testLogicMat.height,
-				widthBytes: testLogicMat.widthBytes,
-				data: []uint8{
-					0b01110000, 0, 0,
+				width: testLogicM_22x6.width,
+				data: [][]uint8{
+					{0b01110000, 0, 0},
 					// Последние два бита в каждой строке не учитываются, тк длина 22.
-					0b11101110, 0b00001110, 0b00101000,
-					0b11001110, 0b00101010, 0b11000000,
-					0b01001110, 0b00001110, 0b10010000,
-					0b10010000, 0b01001110, 0b11001100,
-					0, 0, 0,
+					{0b11101110, 0b00001110, 0b00101000},
+					{0b11001110, 0b00101010, 0b11000000},
+					{0b01001110, 0b00001110, 0b10010000},
+					{0b10010000, 0b01001110, 0b11001100},
+					{0, 0, 0},
 				},
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if gotMRes := tt.mat1.OrByCoord(tt.mat2, tt.x, tt.y); !reflect.DeepEqual(gotMRes, tt.wantRes) {
-				t.Errorf("Mat.OrByCoord() = %v, want %v", gotMRes, tt.wantRes)
+			if tt.mat1.Or(tt.mat2, tt.x, tt.y); !reflect.DeepEqual(tt.mat1, tt.wantRes) {
+				t.Errorf("Mat.OrByCoord() = %v, want %v", tt.mat1, tt.wantRes)
 			}
 		})
 	}
 }
 
-func TestMat_XorByCoord(t *testing.T) {
+func TestMat_Xor(t *testing.T) {
 	tests := []struct {
 		name    string
 		mat1    *Mat
@@ -381,71 +243,63 @@ func TestMat_XorByCoord(t *testing.T) {
 	}{
 		{
 			name: "x:3 y:2",
-			mat1: testLogicMat.Clone(),
+			mat1: testLogicM_22x6.Clone(),
 			x:    3,
 			y:    2,
 			mat2: &Mat{
-				width:      8,
-				height:     4,
-				widthBytes: 1,
-				data: []uint8{
-					0b01101110,
-					0b11001110,
-					0b01001110,
-					0b10010000,
+				width: 8,
+				data: [][]uint8{
+					{0b01101110},
+					{0b11001110},
+					{0b01001110},
+					{0b10010000},
 				},
 			},
 			wantRes: &Mat{
-				width:      testLogicMat.width,
-				height:     testLogicMat.height,
-				widthBytes: testLogicMat.widthBytes,
-				data: []uint8{
-					0, 0, 0,
+				width: testLogicM_22x6.width,
+				data: [][]uint8{
+					{0, 0, 0},
 					// Последние два бита в каждой строке не учитываются, тк длина 22.
-					0b01101110, 0b00001110, 0b00101000,
-					0b11000011, 0b11101010, 0b11000000,
-					0b01010111, 0b11001110, 0b10010000,
-					0b10011001, 0b10001110, 0b11001100,
-					0b00010010, 0, 0,
+					{0b01101110, 0b00001110, 0b00101000},
+					{0b11000011, 0b11101010, 0b11000000},
+					{0b01010111, 0b11001110, 0b10010000},
+					{0b10011001, 0b10001110, 0b11001100},
+					{0b00010010, 0, 0},
 				},
 			},
 		},
 		{
 			name: "x:-3 y:-2",
-			mat1: testLogicMat.Clone(),
+			mat1: testLogicM_22x6.Clone(),
 			x:    -3,
 			y:    -2,
 			mat2: &Mat{
-				width:      8,
-				height:     4,
-				widthBytes: 1,
-				data: []uint8{
-					0b01101110,
-					0b11001110,
-					0b01001110,
-					0b10010000,
+				width: 8,
+				data: [][]uint8{
+					{0b01101110},
+					{0b11001110},
+					{0b01001110},
+					{0b10010000},
 				},
 			},
 			wantRes: &Mat{
-				width:      testLogicMat.width,
-				height:     testLogicMat.height,
-				widthBytes: testLogicMat.widthBytes,
-				data: []uint8{
-					0b01110000, 0, 0,
+				width: testLogicM_22x6.width,
+				data: [][]uint8{
+					{0b01110000, 0, 0},
 					// Последние два бита в каждой строке не учитываются, тк длина 22.
-					0b11101110, 0b00001110, 0b00101000,
-					0b11001110, 0b00101010, 0b11000000,
-					0b01001110, 0b00001110, 0b10010000,
-					0b10010000, 0b01001110, 0b11001100,
-					0, 0, 0,
+					{0b11101110, 0b00001110, 0b00101000},
+					{0b11001110, 0b00101010, 0b11000000},
+					{0b01001110, 0b00001110, 0b10010000},
+					{0b10010000, 0b01001110, 0b11001100},
+					{0, 0, 0},
 				},
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if gotMRes := tt.mat1.XorByCoord(tt.mat2, tt.x, tt.y); !reflect.DeepEqual(gotMRes, tt.wantRes) {
-				t.Errorf("Mat.XorByCoord() = %v, want %v", gotMRes, tt.wantRes)
+			if tt.mat1.Xor(tt.mat2, tt.x, tt.y); !reflect.DeepEqual(tt.mat1, tt.wantRes) {
+				t.Errorf("Mat.XorByCoord() = %v, want %v", tt.mat1, tt.wantRes)
 			}
 		})
 	}

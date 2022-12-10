@@ -3,16 +3,14 @@ package bmat
 import "encoding/json"
 
 type matJson struct {
-	Width  int     `json:"width"`
-	Height int     `json:"height"`
-	Data   []uint8 `json:"data"`
+	Width int       `json:"width"`
+	Data  [][]uint8 `json:"data"`
 }
 
 func (m *Mat) ToJson() (b []byte) {
 	b, _ = json.Marshal(matJson{
-		Width:  m.width,
-		Height: m.height,
-		Data:   m.data,
+		Width: m.width,
+		Data:  m.data,
 	})
 	return
 }
@@ -23,7 +21,7 @@ func FromJson(b []byte) (m *Mat, err error) {
 		return
 	}
 
-	m = New(j.Width, j.Height)
+	m = New(j.Width, len(j.Data))
 	m.data = j.Data
 	return
 }

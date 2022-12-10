@@ -26,10 +26,8 @@ func TestFromImage(t *testing.T) {
 			filename:  "testdata/8x2.png",
 			backColor: color.RGBA{A: 255},
 			wantM: &Mat{
-				width:      8,
-				widthBytes: 1,
-				height:     2,
-				data:       []uint8{0b01010101, 0b10101010},
+				width: 8,
+				data:  [][]uint8{{0b01010101}, {0b10101010}},
 			},
 		},
 		{
@@ -37,10 +35,8 @@ func TestFromImage(t *testing.T) {
 			filename:  "testdata/inverse_8x2.png",
 			backColor: color.RGBA{A: 255},
 			wantM: &Mat{
-				width:      8,
-				widthBytes: 1,
-				height:     2,
-				data:       []uint8{0b10101010, 0b01010101},
+				width: 8,
+				data:  [][]uint8{{0b10101010}, {0b01010101}},
 			},
 		},
 		{
@@ -48,10 +44,8 @@ func TestFromImage(t *testing.T) {
 			filename:  "testdata/10x2.png",
 			backColor: color.RGBA{A: 255},
 			wantM: &Mat{
-				width:      10,
-				widthBytes: 2,
-				height:     2,
-				data:       []uint8{0b01010101, 0b01000000, 0b10101010, 0b10000000},
+				width: 10,
+				data:  [][]uint8{{0b01010101, 0b01000000}, {0b10101010, 0b10000000}},
 			},
 		},
 		{
@@ -59,10 +53,8 @@ func TestFromImage(t *testing.T) {
 			filename:  "testdata/inverse_10x2.png",
 			backColor: color.RGBA{A: 255},
 			wantM: &Mat{
-				width:      10,
-				widthBytes: 2,
-				height:     2,
-				data:       []uint8{0b10101010, 0b10000000, 0b01010101, 0b01000000},
+				width: 10,
+				data:  [][]uint8{{0b10101010, 0b10000000}, {0b01010101, 0b01000000}},
 			},
 		},
 	}
